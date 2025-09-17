@@ -1,42 +1,58 @@
 --[[ 
-    ESP + Hitbox élargie Roblox Educatif
-    Usage: loadstring(game:HttpGet("TON-LIEN-GITHUB", true))()
+    Roblox ESP + Hitbox + AutoKill
+    Usage : loadstring(game:HttpGet("TON-LIEN-GITHUB", true))()
 --]]
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 -- CONFIGURATION
 local ESPEnabled = true
-local HitboxScale = Vector3.new(5,6,3) -- taille des hitbox
+local HitboxScale = Vector3.new(5,6,3)
+local AutoKillEnabled = true
 
--- Fonction pour vérifier s'il y a un mur
-local function canSee(fromPos, toPos)
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character} -- ignorer soi-même
-    local result = workspace:Raycast(fromPos, (toPos - fromPos), raycastParams)
-    if result then
-        return false
-    end
-    return true
+-- GUI
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "HackMenu"
+
+local function createButton(text, position, callback)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 150, 0, 40)
+    btn.Position = position
+    btn.Text = text
+    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
+    btn.BorderSizePixel = 0
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.TextScaled = true
+    btn.Parent = ScreenGui
+    btn.MouseButton1Click:Connect(callback)
+    return btn
 end
 
--- Tableau pour ESP
+createButton("Toggle ESP", UDim2.new(0,10,0,10), function() ESPEnabled = not ESPEnabled end)
+createButton("Toggle AutoKill", UDim2.new(0,10,0,60), function() AutoKillEnabled = not AutoKillEnabled end)
+
+-- Vérifie si le joueur est visible (pas de mur)
+local function canSee(fromPos, toPos)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Blacklist
+    params.FilterDescendantsInstances = {LocalPlayer.Character}
+    local result = workspace:Raycast(fromPos, (toPos - fromPos), params)
+    return result == nil
+end
+
+-- ESP et hitbox
 local ESPBoxes = {}
 
 local function createESP(player)
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
     if ESPBoxes[player] then return end
-
-    -- Vérifie si on peut voir le joueur et qu'il n'est pas coéquipier
-    local isTeamMate = player.Team == LocalPlayer.Team
-    if isTeamMate then return end
+    if player.Team == LocalPlayer.Team then return end
     if not canSee(Camera.CFrame.Position, player.Character.HumanoidRootPart.Position) then return end
 
-    -- Création hitbox/ESP
     local box = Instance.new("BoxHandleAdornment")
     box.Size = HitboxScale
     box.Adornee = player.Character.HumanoidRootPart
@@ -56,17 +72,36 @@ local function removeESP(player)
     end
 end
 
--- Loop principal
-RunService.RenderStepped:Connect(function()
-    if ESPEnabled then
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer then
-                createESP(plr)
+-- Fonction AutoKill
+local function checkAutoKill()
+    if not AutoKillEnabled then return end
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") then
+            if player.Team ~= LocalPlayer.Team then
+                local hrp = plr.Character.HumanoidRootPart
+                local rayParams = RaycastParams.new()
+                rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+                rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+                local result = workspace:Raycast(Camera.CFrame.Position, (hrp.Position - Camera.CFrame.Position), rayParams)
+                if result and result.Instance:IsDescendantOf(plr.Character) then
+                    -- AutoKill : réduit la vie à 0
+                    plr.Character.Humanoid.Health = 0
+                end
             end
         end
-    else
-        for plr, _ in pairs(ESPBoxes) do
-            removeESP(plr)
+    end
+end
+
+-- Boucle principale
+RunService.RenderStepped:Connect(function()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            if ESPEnabled then
+                createESP(plr)
+            else
+                removeESP(plr)
+            end
         end
     end
+    checkAutoKill()
 end)
