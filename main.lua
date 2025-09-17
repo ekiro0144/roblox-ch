@@ -1,107 +1,183 @@
---[[ 
-    Roblox ESP + Hitbox + AutoKill
-    Usage : loadstring(game:HttpGet("TON-LIEN-GITHUB", true))()
---]]
+--[[
+â–ˆâ–ˆâ•—   â–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—    â–ˆâ–ˆâ•—â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•— â–ˆâ–ˆâ•—    â–ˆâ–ˆâ•— â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—    â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—      â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—
+â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•â•â–ˆâ–ˆâ•—â–ˆâ–ˆâ•‘    â–ˆâ–ˆâ•‘â–ˆâ•”â•  â–ˆ      â–ˆâ–ˆâ•—       â–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•—    
+â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘        â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘ â–ˆâ•— â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆ     â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”       â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—  
+â•šâ–ˆâ–ˆâ•— â–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘     â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ•—   â–ˆâ–ˆâ•‘  â–ˆâ–ˆâ•”â•â•  â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•”â•  â–ˆâ–ˆâ•”â•â•â•  
+ â•šâ–ˆâ–ˆâ–ˆâ–ˆâ•”â• â•šâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•”â•â•šâ–ˆâ–ˆâ–ˆâ•”  â–ˆâ–ˆâ–ˆâ•”â•â–ˆâ–ˆâ•‘   â–ˆâ–ˆâ•‘â–ˆâ–ˆâ•‘        â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ•—
+  â•šâ•â•â•â•   â•šâ•â•â•â•â•â• â•šâ•â•â•šâ•â•â•â•â•â•  â•šâ•â•â•â•šâ•â•â• â•šâ•â•  â•šâ•â•â•šâ•â•     â•šâ•â•â•â•â•â•â•
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+                ðŸš€ VOIDWARE â€” 99 Nights In The Forest ðŸš€
+----------------------------------------------------------------------------
+  IMPORTANT:
+  You must copy and use the FULL script below. Do NOT press on the link.:
 
--- CONFIGURATION
-local ESPEnabled = true
-local HitboxScale = Vector3.new(5,6,3)
-local AutoKillEnabled = true
+  loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/loader.lua", true))()
 
--- GUI
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-ScreenGui.Name = "HackMenu"
-
-local function createButton(text, position, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 150, 0, 40)
-    btn.Position = position
-    btn.Text = text
-    btn.BackgroundColor3 = Color3.fromRGB(35,35,35)
-    btn.BorderSizePixel = 0
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.TextScaled = true
-    btn.Parent = ScreenGui
-    btn.MouseButton1Click:Connect(callback)
-    return btn
-end
-
-createButton("Toggle ESP", UDim2.new(0,10,0,10), function() ESPEnabled = not ESPEnabled end)
-createButton("Toggle AutoKill", UDim2.new(0,10,0,60), function() AutoKillEnabled = not AutoKillEnabled end)
-
--- Vérifie si le joueur est visible (pas de mur)
-local function canSee(fromPos, toPos)
-    local params = RaycastParams.new()
-    params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.FilterDescendantsInstances = {LocalPlayer.Character}
-    local result = workspace:Raycast(fromPos, (toPos - fromPos), params)
-    return result == nil
-end
-
--- ESP et hitbox
-local ESPBoxes = {}
-
-local function createESP(player)
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
-    if ESPBoxes[player] then return end
-    if player.Team == LocalPlayer.Team then return end
-    if not canSee(Camera.CFrame.Position, player.Character.HumanoidRootPart.Position) then return end
-
-    local box = Instance.new("BoxHandleAdornment")
-    box.Size = HitboxScale
-    box.Adornee = player.Character.HumanoidRootPart
-    box.AlwaysOnTop = true
-    box.ZIndex = 5
-    box.Color3 = Color3.new(1,0,0)
-    box.Transparency = 0.5
-    box.Parent = workspace
-
-    ESPBoxes[player] = box
-end
-
-local function removeESP(player)
-    if ESPBoxes[player] then
-        ESPBoxes[player]:Destroy()
-        ESPBoxes[player] = nil
-    end
-end
-
--- Fonction AutoKill
-local function checkAutoKill()
-    if not AutoKillEnabled then return end
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character:FindFirstChild("Humanoid") then
-            if player.Team ~= LocalPlayer.Team then
-                local hrp = plr.Character.HumanoidRootPart
-                local rayParams = RaycastParams.new()
-                rayParams.FilterType = Enum.RaycastFilterType.Blacklist
-                rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
-                local result = workspace:Raycast(Camera.CFrame.Position, (hrp.Position - Camera.CFrame.Position), rayParams)
-                if result and result.Instance:IsDescendantOf(plr.Character) then
-                    -- AutoKill : réduit la vie à 0
-                    plr.Character.Humanoid.Health = 0
+----------------------------------------------------------------------------
+  For support head over to discord.gg/voidware
+----------------------------------------------------------------------------
+]]
+if not game:IsLoaded() then return end
+local CheatEngineMode = false
+if (not getgenv) or (getgenv and type(getgenv) ~= "function") then CheatEngineMode = true end
+if getgenv and not getgenv().shared then CheatEngineMode = true; getgenv().shared = {}; end
+if getgenv and not getgenv().debug then CheatEngineMode = true; getgenv().debug = {traceback = function(string) return string end} end
+if getgenv and not getgenv().require then CheatEngineMode = true; end
+if getgenv and getgenv().require and type(getgenv().require) ~= "function" then CheatEngineMode = true end
+local debugChecks = {
+    Type = "table",
+    Functions = {
+        "getupvalue",
+        "getupvalues",
+        "getconstants",
+        "getproto"
+    }
+}
+local function checkExecutor()
+    if identifyexecutor ~= nil and type(identifyexecutor) == "function" then
+        local suc, res = pcall(function()
+            return identifyexecutor()
+        end)   
+        --local blacklist = {'appleware', 'cryptic', 'delta', 'wave', 'codex', 'swift', 'solara', 'vega'}
+        local blacklist = {'solara', 'cryptic', 'xeno', 'ember', 'ronix'}
+        local core_blacklist = {'solara', 'xeno'}
+        if suc then
+            for i,v in pairs(blacklist) do
+                if string.find(string.lower(tostring(res)), v) then CheatEngineMode = true end
+            end
+            for i,v in pairs(core_blacklist) do
+                if string.find(string.lower(tostring(res)), v) then
+                    pcall(function()
+                        getgenv().queue_on_teleport = function() warn('queue_on_teleport disabled!') end
+                    end)
+                end
+            end
+            if string.find(string.lower(tostring(res)), "delta") then
+                getgenv().isnetworkowner = function()
+                    return true
                 end
             end
         end
     end
 end
-
--- Boucle principale
-RunService.RenderStepped:Connect(function()
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
-            if ESPEnabled then
-                createESP(plr)
-            else
-                removeESP(plr)
+task.spawn(function() pcall(checkExecutor) end)
+local function checkDebug()
+    if CheatEngineMode then return end
+    if not getgenv().debug then 
+        CheatEngineMode = true 
+    else 
+        if type(debug) ~= debugChecks.Type then 
+            CheatEngineMode = true
+        else 
+            for i, v in pairs(debugChecks.Functions) do
+                if not debug[v] or (debug[v] and type(debug[v]) ~= "function") then 
+                    CheatEngineMode = true 
+                else
+                    local suc, res = pcall(debug[v]) 
+                    if tostring(res) == "Not Implemented" then 
+                        CheatEngineMode = true 
+                    end
+                end
             end
         end
     end
-    checkAutoKill()
+end
+--if (not CheatEngineMode) then checkDebug() end
+shared.CheatEngineMode = shared.CheatEngineMode or CheatEngineMode
+
+if game.PlaceId == 79546208627805 then
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Voidware | 99 Nights In The Forest",
+            Text = "Go In Game for Voidware to load :D [You are in lobby currently]",
+            Duration = 10
+        })
+    end)
+    return
+end 
+
+task.spawn(function()
+    pcall(function()
+        local Services = setmetatable({}, {
+            __index = function(self, key)
+                local suc, service = pcall(game.GetService, game, key)
+                if suc and service then
+                    self[key] = service
+                    return service
+                else
+                    warn(`[Services] Warning: "{key}" is not a valid Roblox service.`)
+                    return nil
+                end
+            end
+        })
+
+        local Players = Services.Players
+        local TextChatService = Services.TextChatService
+        local ChatService = Services.ChatService
+        repeat
+            task.wait()
+        until game:IsLoaded() and Players.LocalPlayer ~= nil
+        local chatVersion = TextChatService and TextChatService.ChatVersion or Enum.ChatVersion.LegacyChatService
+        local TagRegister = shared.TagRegister or {}
+        if not shared.CheatEngineMode then
+            if chatVersion == Enum.ChatVersion.TextChatService then
+                TextChatService.OnIncomingMessage = function(data)
+                    TagRegister = shared.TagRegister or {}
+                    local properties = Instance.new("TextChatMessageProperties", game:GetService("Workspace"))
+                    local TextSource = data.TextSource
+                    local PrefixText = data.PrefixText or ""
+                    if TextSource then
+                        local plr = Players:GetPlayerByUserId(TextSource.UserId)
+                        if plr then
+                            local prefix = ""
+                            if TagRegister[plr] then
+                                prefix = prefix .. TagRegister[plr]
+                            end
+                            if plr:GetAttribute("__OwnsVIPGamepass") and plr:GetAttribute("VIPChatTag") ~= false then
+                                prefix = prefix .. "<font color='rgb(255,210,75)'>[VIP]</font> "
+                            end
+                            local currentLevel = plr:GetAttribute("_CurrentLevel")
+                            if currentLevel then
+                                prefix = prefix .. string.format("<font color='rgb(173,216,230)'>[</font><font color='rgb(255,255,255)'>%s</font><font color='rgb(173,216,230)'>]</font> ", tostring(currentLevel))
+                            end
+                            local playerTagValue = plr:FindFirstChild("PlayerTagValue")
+                            if playerTagValue and playerTagValue.Value then
+                                prefix = prefix .. string.format("<font color='rgb(173,216,230)'>[</font><font color='rgb(255,255,255)'>#%s</font><font color='rgb(173,216,230)'>]</font> ", tostring(playerTagValue.Value))
+                            end
+                            prefix = prefix .. PrefixText
+                            properties.PrefixText = string.format("<font color='rgb(255,255,255)'>%s</font>", prefix)
+                        end
+                    end
+                    return properties
+                end
+            elseif chatVersion == Enum.ChatVersion.LegacyChatService then
+                ChatService:RegisterProcessCommandsFunction("CustomPrefix", function(speakerName, message)
+                    TagRegister = shared.TagRegister or {}
+                    local plr = Players:FindFirstChild(speakerName)
+                    if plr then
+                        local prefix = ""
+                        if TagRegister[plr] then
+                            prefix = prefix .. TagRegister[plr]
+                        end
+                        if plr:GetAttribute("__OwnsVIPGamepass") and plr:GetAttribute("VIPChatTag") ~= false then
+                            prefix = prefix .. "[VIP] "
+                        end
+                        local currentLevel = plr:GetAttribute("_CurrentLevel")
+                        if currentLevel then
+                            prefix = prefix .. string.format("[%s] ", tostring(currentLevel))
+                        end
+                        local playerTagValue = plr:FindFirstChild("PlayerTagValue")
+                        if playerTagValue and playerTagValue.Value then
+                            prefix = prefix .. string.format("[#%s] ", tostring(playerTagValue.Value))
+                        end
+                        prefix = prefix .. speakerName
+                        return prefix .. " " .. message
+                    end
+                    return message
+                end)
+            end
+        end
+    end)
 end)
+
+local commit = shared.CustomCommit and tostring(shared.CustomCommit) or shared.StagingMode and "staging" or "7b3fad2b46336a55beca73caa205fb49dac41165"
